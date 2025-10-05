@@ -1,0 +1,226 @@
+---
+title: "Creación de Base de Datos para Ensayo Clínico Aleatorizado"
+author: "Aylin Janampa"
+format: html
+editor: visual
+---
+
+# Introducción
+
+En este tutorial aprenderás cómo **crear una base de datos aleatorizada** en **R** para un **ensayo clínico aleatorizado** que tiene como objetivo evaluar la eficacia de cambiar el horario de las clases de **bioestadística** de los **sábados** a los **miércoles**. La base de datos que vamos a crear contará con **1000 individuos** y consideraremos varios factores, como:
+
+-   **Nota (rango: 09 a 20)**: Como desenlace.
+
+-   **Exposición al laboratorio 2 (0 = sábado, 1 = miércoles)**: La variable de exposición.
+
+-   **Confusores**:
+
+    -   **Procedencia** (0 = Cono Centro, 1 = Cono Sur, 2 = Cono Este, 3 = Cono Norte)
+    -   **Tercio académico** (0 = Tercio superior, 1 = Tercio medio, 2 = Tercio inferior)
+    -   **Edad** (de 19 a 25 años, con distribución según la población peruana)
+    -   **Género** (0 = masculino, 1 = femenino; 40% masculino, 60% femenino)
+
+------------------------------------------------------------------------
+
+## Objetivos del Tutorial
+
+Al finalizar este tutorial, deberías ser capaz de:
+
+-   Crear una base de datos aleatoria en R para un ensayo clínico.
+-   Asignar valores aleatorios a las variables según las especificaciones del ensayo.
+-   Exportar los datos a un archivo Excel o CSV.
+-   Generar la **metadata** de la base de datos para explicar el significado de las variables.
+
+------------------------------------------------------------------------
+
+# Paso 1: Instalación de Paquetes Necesarios
+
+Para comenzar a trabajar en R, necesitamos instalar y cargar los paquetes necesarios que nos permitirán manipular y exportar los datos. En este caso, usaremos dos paquetes fundamentales:
+
+1.  **`tidyverse`**: Un conjunto de paquetes que incluye herramientas poderosas para manipular y analizar datos, como `dplyr`, `ggplot2`, `tibble`, entre otros.
+2.  **`writexl`**: Este paquete nos permitirá exportar los datos a un archivo **Excel**, que es el formato requerido para el entregable.
+
+### 1.1 Instalación de los Paquetes
+
+Primero, instalamos los paquetes `tidyverse` y `writexl`. Puedes ejecutarlo en tu consola de R para instalar los paquetes:
+
+```{r}
+# Instalamos el paquete 'tidyverse', que incluye herramientas para manipular datos
+install.packages("tidyverse")
+
+# Instalamos el paquete 'writexl', que nos permite escribir archivos Excel
+install.packages("writexl")
+```
+
+### 1.2 Carga de los Paquetes
+
+Después de haber instalado los paquetes, debemos cargarlos para empezar a usarlos. Lo hacemos con la función `library()`:
+
+```{r}
+# Cargamos el paquete 'tidyverse' para manipulación de datos
+library(tidyverse)
+
+# Cargamos el paquete 'writexl' para poder exportar los datos a Excel
+library(writexl)
+```
+
+### 1.3 Manejo de Conflictos
+
+Al cargar **`tidyverse`**, es posible que veas advertencias sobre **conflictos de nombres** entre algunas funciones de base R y las que están incluidas en el paquete `dplyr`. Por ejemplo, **`filter()`** es una función que existe tanto en base R como en `dplyr`. Esto puede causar confusión sobre qué función se ejecuta.
+
+Aunque **estos conflictos no son errores**, pueden generar problemas si no se manejan correctamente. Si quieres evitar estos conflictos, hay varias formas de hacerlo:
+
+#### Opción: Usar el paquete `conflicted`
+
+Puedes instalar y cargar el paquete `conflicted`, que te permite **especificar explícitamente** qué función deseas utilizar cuando hay un conflicto. Esto te da control total sobre qué función se debe usar.
+
+```{r}
+# Instalamos y cargamos el paquete 'conflicted'
+install.packages("conflicted")
+library(conflicted)
+```
+
+Con `conflicted`, si hay un conflicto, se te notificará y podrás indicar cuál función prefieres usar.
+
+### Resumen
+
+Con estos pasos, **instalamos y cargamos los paquetes** necesarios para el análisis de datos, y manejamos los posibles conflictos entre funciones de R. Si todo funciona correctamente, ya estamos listos para proceder a la siguiente fase del tutorial, que consiste en crear la base de datos simulada.
+
+### Recomendación
+
+Si todo ha funcionado correctamente en este paso, y ya no ves más advertencias, ¡estás listo para continuar con el resto del tutorial!
+
+------------------------------------------------------------------------
+
+# Paso 2: Creación de la Base de Datos
+
+En este paso, vamos a **crear la base de datos aleatoria** para los **1000 individuos** del ensayo clínico. La base de datos se generará con las variables que hemos especificado, como las **notas del curso**, la **exposición al laboratorio**, la **procedencia**, el **tercio académico**, la **edad** y el **género**.
+
+### 2.1 Definición de las Variables
+
+Vamos a crear las siguientes variables aleatorias para cada individuo en el estudio:
+
+-   **Nota**: Este será el desenlace de nuestro estudio. Tomaremos un valor aleatorio entre 9 y 20.
+-   **Exposición al laboratorio**: Definiremos si el participante asistió los **sábados** (0) o los **miércoles** (1).
+-   **Procedencia**: Aleatorio entre los valores **0** (Cono Centro), **1** (Cono Sur), **2** (Cono Este) y **3** (Cono Norte).
+-   **Tercio académico**: Asignamos a cada participante a uno de los tres tercios académicos, de manera aleatoria: **0** (tercio superior), **1** (tercio medio) y **2** (tercio inferior).
+-   **Edad**: Generamos edades entre **19** y **25 años**, siguiendo una distribución uniforme.
+-   **Género**: Aleatorio entre **0** (masculino) y **1** (femenino), con una distribución de **40% masculino** y **60% femenino**.
+
+### 2.2 Creación del Data Frame en R
+
+Vamos a generar los datos de los 1000 individuos con las siguientes líneas de código:
+
+```{r}
+# Establecer semilla para asegurar la reproducibilidad
+set.seed(123)
+
+# Crear el data frame con 1000 participantes
+n <- 1000  # Número de participantes
+
+# Generar los datos aleatorios
+data <- tibble(
+  ID = 1:n,  # Identificador único del participante
+  Nota = sample(9:20, n, replace = TRUE),  # Notas aleatorias entre 9 y 20
+  Exposicion_Lab2 = sample(0:1, n, replace = TRUE),  # 0 = sábado, 1 = miércoles
+  Procedencia = sample(0:3, n, replace = TRUE),  # 0 = Cono Centro, 1 = Cono Sur, 2 = Cono Este, 3 = Cono Norte
+  Tercio = sample(0:2, n, replace = TRUE),  # 0 = Tercio superior, 1 = Tercio Medio, 2 = Tercio inferior
+  Edad = sample(19:25, n, replace = TRUE),  # Edad entre 19 y 25 años
+  Genero = sample(0:1, n, replace = TRUE, prob = c(0.4, 0.6))  # 40% masculino, 60% femenino
+)
+
+# Ver las primeras filas de los datos generados
+head(data)
+```
+
+### Explicación del Código:
+
+1.  **`set.seed(123)`**: Esta línea garantiza que el proceso de generación de números aleatorios sea **reproducible**. Esto significa que, si alguien más ejecuta este código, obtendrá exactamente los mismos resultados.
+
+2.  **`tibble()`**: Usamos `tibble` en lugar de `data.frame` porque es más moderno, optimizado y presenta los datos de una forma más clara. Además, es parte del paquete **`tidyverse`**, que estamos usando para manejar los datos.
+
+3.  **Generación de datos**:
+
+    -   **ID**: Creamos un identificador único para cada participante (de 1 a 1000).
+    -   **Nota**: Utilizamos la función `sample(9:20, n, replace = TRUE)` para generar 1000 notas aleatorias entre 9 y 20.
+    -   **Exposición al laboratorio (Exposicion_Lab2)**: Generamos valores aleatorios de **0** o **1**, donde **0** representa sábado y **1** representa miércoles.
+    -   **Procedencia**: Generamos valores aleatorios entre 0 y 3 para simular la procedencia de los participantes.
+    -   **Tercio académico**: Asignamos aleatoriamente a cada participante a uno de los tres tercios académicos.
+    -   **Edad**: Generamos edades aleatorias entre 19 y 25 años.
+    -   **Género**: Usamos `sample(0:1, n, replace = TRUE, prob = c(0.4, 0.6))` para generar **60% de mujeres** (1) y **40% de hombres** (0).
+
+4.  **Visualización de los datos**: Finalmente, usamos `head(data)` para verificar que los datos se hayan generado correctamente.
+
+------------------------------------------------------------------------
+
+### 2.3 Verificación de los Datos Generados
+
+Para asegurarnos de que todo esté correcto, podemos inspeccionar las primeras filas de la base de datos generada con `head(data)`. Esta función te muestra las primeras 6 filas, lo cual es útil para verificar que todo se haya generado correctamente.
+
+```{r}
+# Ver las primeras filas de los datos para confirmar su correcta generación
+head(data)
+```
+
+Esto nos da una vista previa de los primeros registros de la base de datos generada. Es una buena práctica revisar los datos antes de continuar con el análisis.
+
+------------------------------------------------------------------------
+
+### Resumen del Paso 2
+
+En este paso, hemos creado la base de datos simulada para nuestro ensayo clínico, con 1000 participantes. Hemos asignado valores aleatorios a las variables como la **nota**, **exposición al laboratorio**, **procedencia**, **edad** y **género**. Este proceso nos permite simular un conjunto de datos realista para análisis posteriores.
+
+### ¿Qué sigue?
+
+Ahora que hemos generado la base de datos, el siguiente paso será crear la **metadata** que documenta cada una de las variables, para que cualquier persona que use estos datos pueda entender qué representan.
+
+------------------------------------------------------------------------
+
+Este paso es esencial para **crear bases de datos aleatorias** y **simuladas**, que son fundamentales para las prácticas de análisis estadístico, especialmente cuando no se tienen datos reales disponibles.
+
+------------------------------------------------------------------------
+
+# Paso 3: Crear la Metadata
+
+La **metadata** es una descripción detallada de cada variable, que nos ayudará a entender mejor los datos. Es importante documentar bien las variables para que otros usuarios o investigadores puedan interpretar la base de datos correctamente.
+
+```{r}
+# Crear la metadata como un tibble
+metadata <- tibble(
+  Variable = c("ID", "Nota", "Exposicion_Lab2", "Procedencia", "Tercio", "Edad", "Genero"),
+  Descripcion = c(
+    "Identificador único del participante",
+    "Nota del curso (rango: 09 a 20)",
+    "Exposición al laboratorio 2 (0=sábado, 1=miércoles)",
+    "Procedencia del participante (0=Cono Centro, 1=Cono Sur, 2=Cono Este, 3=Cono Norte)",
+    "Tercio (0=Tercio superior, 1=Tercio Medio, 2=Tercio inferior)",
+    "Edad (rango: 19 a 25 años)",
+    "Género (0=masculino, 1=femenino)"
+  )
+)
+
+# Ver la metadata para confirmar que todo está correcto
+metadata
+```
+
+------------------------------------------------------------------------
+
+# Paso 4: Exportar los Datos a Excel
+
+El siguiente paso es guardar nuestra base de datos y la metadata en un archivo **Excel**, que es el formato solicitado para el entregable. Usaremos la función `write_xlsx()` del paquete **`writexl`** para exportar la base de datos a un archivo Excel con dos hojas: una para los **datos** y otra para la **metadata**.
+
+```{r}
+# Guardar los datos y la metadata en un archivo Excel
+write_xlsx(list("Datos" = data, "Metadata" = metadata), path = "ensayo_clinico_aleatorizado.xlsx")
+
+# Confirmación de que los datos se han guardado correctamente
+cat("¡Datos y metadata guardados correctamente en 'ensayo_clinico_aleatorizado.xlsx'!")
+```
+
+------------------------------------------------------------------------
+
+# Conclusión
+
+En este tutorial, hemos aprendido cómo crear una **base de datos aleatorizada** para un ensayo clínico en **R**. Además, hemos exportado la base de datos y su metadata a un archivo **Excel**, lo cual es crucial para su uso en análisis posteriores. Este proceso es útil en investigaciones donde se necesiten datos simulados para realizar análisis estadísticos.
+
+------------------------------------------------------------------------
