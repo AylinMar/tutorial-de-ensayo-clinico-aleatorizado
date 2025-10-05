@@ -1,4 +1,4 @@
-#Tutorial: Creación de una Base de Datos Aleatorizada en R para Ensayo Clínico
+# Tutorial: Creación de una Base de Datos Aleatorizada en R para Ensayo Clínico
 ¿Qué es un Ensayo Clínico Aleatorizado?
 
 Un ensayo clínico aleatorizado (ECA) es un tipo de investigación científica que se utiliza para evaluar la eficacia de intervenciones médicas, como tratamientos o terapias, de manera controlada y sistemática. En estos estudios, los participantes son asignados aleatoriamente a diferentes grupos para comparar cómo responden a diferentes tratamientos o condiciones, lo que ayuda a eliminar sesgos y obtener resultados más fiables.
